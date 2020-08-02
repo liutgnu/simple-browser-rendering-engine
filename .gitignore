@@ -1,0 +1,8 @@
+*.cmd
+*.o
+*.til
+*.txt
+*.d
+*.out
+.vscode/*
+.git/*
