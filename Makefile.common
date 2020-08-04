@@ -1,0 +1,27 @@
+CXX = g++
+CC  = gcc
+
+OBJS = $(patsubst %.cc,%.o,$(SOURCES))
+
+%.o: %.cc
+	@echo "CXX $<"
+	@$(CXX) -g -c -o $@ $<
+
+$(LIBRARY_OUT): $(OBJS) $(SOURCES)
+	@echo 'LD $@'
+	@ld -r -o $@ $(OBJS)
+
+compile = (cd $(dir $(1)); make $(notdir $(1)))
+
+$(LIBRARY_EXTRAS):
+	$(call compile, $@)
+
+intergrate: $(MAIN_SOURCE) $(LIBRARY_OUT) $(LIBRARY_EXTRAS)
+	@echo 'LD $(INTERGRATE_TEST_OUT)'
+	@$(CXX) -g -o $(INTERGRATE_TEST_OUT) $^
+
+.PHONEY clean:
+ifdef LIBRARY_EXTRAS
+	(cd $(dir $(word 1, $(LIBRARY_EXTRAS))); make clean)
+endif
+	find ./ -regextype posix-extended -regex ".*\.(o|out)" | xargs rm -f

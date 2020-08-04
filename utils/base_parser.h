@@ -2,12 +2,12 @@
 #include <string>
 #include <vector>
 #include <assert.h>
+#include "checkers.h"
 
 using namespace std;
 
 namespace simple_browser {
 
-template <typename T>
 class BaseParser {
     public:
     string source;
@@ -16,68 +16,55 @@ class BaseParser {
     public:
     BaseParser(string& source): source(source), position(0) {}
 
-    // virtual vector<T> parse_dom_nodes();
-    // virtual <T> parse_dom_node();
-
     bool eof() {
         return position >= source.length();
     }
 
-    bool starts_with(string str) {
+    bool starts_with_string(string str) {
         return source.substr(position, str.length()) == str;
     }
-    
-};
 
-auto is_char = [](char c) -> bool {
-    return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z'));
-};
+    template <typename F>
+    bool starts_with_char_predicate(const F& f) {
+        return f(source[position]);
+    }
 
-auto is_num = [](char c) -> bool {
-    return (c >= '0') && (c <= '9');
-};
+    /****************************************************************/
+    template <typename F>
+    void advance_position_loop(const F& f) {
+        while (position < source.length() 
+            && f(source[position])) {
+            ++position;
+        }
+    };
 
-auto is_blank = [](char c) -> bool {
-    return (c == ' ') || (c == '\t') || (c == '\n');
-};
+    template <typename F>
+    string consume_position_loop(const F& f) {
+        string ret;
+        while (position < source.length()
+            && f(source[position])) {
+            ret.push_back(source[position]);
+            ++position;
+        }
+        return ret;
+    }
 
-/****************************************************************/
-template <typename T, typename F>
-void advance_position_loop(BaseParser<T> &parser, const F& f) {
-    while (parser.position < parser.source.length() 
-        && f(parser.source[parser.position])) {
-        ++parser.position;
+    void advance_position_string(string str) {
+        assert(str == source.substr(position, str.length()));
+        position += str.length();
+    }
+
+    /****************************************************************/
+    template <typename F>
+    string skip_blank_and_consume_position(const F& f) {
+        advance_position_loop(is_blank);
+        return consume_position_loop(f);
+    }
+
+    void skip_blank_and_advance_position_string(string str) {
+        advance_position_loop(is_blank);
+        advance_position_string(str);
     }
 };
-
-template <typename T, typename F>
-string consume_position_loop(BaseParser<T> &parser, const F& f) {
-    string ret;
-    while (parser.position < parser.source.length()
-        && f(parser.source[parser.position])) {
-        ret.push_back(parser.source[parser.position]);
-        ++parser.position;
-    }
-    return ret;
-}
-
-template <typename T>
-void advance_position_string(BaseParser<T> &parser, string str) {
-    assert(str == parser.source.substr(parser.position, str.length()));
-    parser.position += str.length();
-}
-
-/****************************************************************/
-template <typename T, typename F>
-string skip_blank_and_consume_position(BaseParser<T> &parser, const F& f) {
-    advance_position_loop(parser, is_blank);
-    return consume_position_loop(parser, f);
-}
-
-template <typename T>
-void skip_blank_and_advance_position_string(BaseParser<T> &parser, string str) {
-    advance_position_loop(parser, is_blank);
-    advance_position_string(parser, str);
-}
 
 }
