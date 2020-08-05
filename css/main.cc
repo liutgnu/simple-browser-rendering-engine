@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include "css_element.h"
 
 using namespace std;
 
@@ -21,7 +22,10 @@ int main(int argc, char **argv)
     string source = ss.str();
 
     simple_browser_css::CssParser cssParser(source);
-    cssParser.parse_css_rules();
+    auto rules = cssParser.parse_css_rules();
+    for (int i = 0; i < rules.size(); ++i) {
+        rules[i].print(i == rules.size() - 1);
+    }
 
     return 0;
 }

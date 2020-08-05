@@ -13,6 +13,21 @@ struct Selector {
     string id;
     string tag;
     vector<string> class_list;
+
+    string to_string() {
+        string ret;
+        if (id.length() > 0) {
+            ret += "#" + id + " ";
+        }
+        if (tag.length() > 0) {
+            ret += tag + " ";
+        }
+        for (int i = 0; i < class_list.size(); ++i) {
+            ret += "." + class_list[i] + " ";
+        }
+        ret.resize(ret.length() - 1);
+        return ret;
+    }
 };
 
 struct Keyword {
@@ -87,6 +102,10 @@ struct Declaration {
         }
     }
     ~Declaration() {}
+
+    string to_string() {
+        return name;
+    }
 };
 
 struct Rule {
@@ -94,6 +113,22 @@ struct Rule {
     vector<Declaration> declarations;
     Rule(vector<Selector> selectors, vector<Declaration> declarations):
         selectors(selectors), declarations(declarations) {}
+
+    void print(bool is_last_rule) {
+        for (int i = 0; i < selectors.size(); ++i) {
+            if (is_last_rule && i ==  selectors.size() - 1) {
+                cout << "\xE2\x94\x94\xE2\x94\x80" << selectors[i].to_string() << endl;
+            } else {
+                cout << "\xE2\x94\x9c\xE2\x94\x80" << selectors[i].to_string() << endl;
+            }
+            for (int i = 0; i < declarations.size(); ++i) {
+                if (i != declarations.size() - 1) 
+                    cout << (is_last_rule ? " " : "\xE2\x94\x82") << "  \xE2\x94\x9c\xE2\x94\x80" << declarations[i].to_string() << endl;
+                else
+                    cout << (is_last_rule ? " " : "\xE2\x94\x82") << "  \xE2\x94\x94\xE2\x94\x80" << declarations[i].to_string() << endl;
+            }
+        }
+    }
 };
 
 }
