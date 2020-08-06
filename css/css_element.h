@@ -52,56 +52,68 @@ enum ValueType {
     COLOR,
 };
 
-struct Declaration {
-    string name;
-    ValueType type;
+struct Value {
+    ValueType type;    
+    union {
+        struct {
+            string keyword;            
+        } Keyword;
 
-    struct {
-        string keyword;
-    } Keyword;
+        struct {
+            float data;
+            string unit;
+        } Length;
 
-    struct {
-        float data;
-        string unit;
-    } Length;
+        struct {
+            uint8_t r;
+            uint8_t g;
+            uint8_t b;
+            uint8_t a;    
+        } Color;
+    };
 
-    struct {
-        uint8_t r;
-        uint8_t g;
-        uint8_t b;
-        uint8_t a;    
-    } Color;
-
-    Declaration(const string& name, ValueType type, const string& kwd): 
-        name(name), type(type) {
-        Keyword.keyword = kwd;
+    Value(const string& kwd): type(KEYWORD) {
+        new(&this->Keyword.keyword) string(kwd);
     }
-    Declaration(const string& name, ValueType type, const tuple<float, string>& length):
-        name(name), type(type) {
-        tie(Length.data, Length.unit) = length;
+    Value(const tuple<float, string>& length): type(LENGTH) {
+        Length.data = get<0>(length);
+        new(&this->Length.unit) string(get<1>(length));
     }
-    Declaration(const string& name, ValueType type, const tuple<uint8_t, uint8_t, uint8_t, uint8_t>& color):
-        name(name), type(type) {
+    Value(const tuple<uint8_t, uint8_t, uint8_t, uint8_t>& color): type(COLOR) {
         tie(Color.r, Color.g, Color.b, Color.a) = color;
     }
-    Declaration(const Declaration& de) {
-        switch (de.type) {
+    Value(const Value& v) {
+        switch (v.type) {
             case KEYWORD:
-                new(this) Declaration(de.name, de.type, de.Keyword.keyword);
+                new(this) Value(v.Keyword.keyword);
                 return;
             case LENGTH:
-                new(this) Declaration(de.name, de.type, make_tuple(de.Length.data, de.Length.unit));
+                new(this) Value(make_tuple(v.Length.data, v.Length.unit));
                 return;
             case COLOR:
-                new(this) Declaration(de.name, de.type, make_tuple(de.Color.r, 
-                    de.Color.g, de.Color.b, de.Color.a));
+                new(this) Value(make_tuple(v.Color.r, 
+                    v.Color.g, v.Color.b, v.Color.a));
                 return;
             default:
-                cout << "error declaration type" << endl;
+                cout << "error value type" << endl;
                 exit(-1);
         }
     }
-    ~Declaration() {}
+    Value() {}
+    ~Value() {}
+};
+
+struct Declaration {
+    string name;
+    struct Value value;
+
+    Declaration(const string& name, const string& kwd): 
+        name(name), value(kwd) {}
+    Declaration(const string& name, const tuple<float, string>& length):
+        name(name), value(length) {}
+    Declaration(const string& name, const tuple<uint8_t, uint8_t, uint8_t, uint8_t>& color):
+        name(name), value(color) {}
+    Declaration(const Declaration& de):name(de.name), value(de.value) {}
 
     string to_string() {
         return name;

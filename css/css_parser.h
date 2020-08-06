@@ -90,16 +90,16 @@ class CssParser: public BaseParser {
             advance_position_string("#");
             string color = consume_position_loop(is_hex);
             assert(color.length() == 3 || color.length() == 6);
-            return Declaration(name, COLOR, color_trans(color));
+            return Declaration(name, color_trans(color));
         } else if (starts_with_string("-") || (starts_with_char_predicate(is_num))) { // length
             float data = stof(consume_position_loop([](char c) -> bool {
                 return (is_num(c) || c == '.' || c == '-');
             }));
-            return Declaration(name, LENGTH, 
+            return Declaration(name, 
                 make_tuple(data, skip_blank_and_consume_position(is_char)));
         } else if (starts_with_char_predicate(is_char)) {
             string keyword = consume_position_loop(is_char);
-            return Declaration(name, KEYWORD, keyword);
+            return Declaration(name, keyword);
         } else {
             cout << "unknown declaration " << source[position] << endl;
             exit(-1);
