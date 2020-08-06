@@ -1,5 +1,5 @@
 #include "html_parser.h"
-#include "../utils/dom.h"
+#include "dom.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>

@@ -4,6 +4,7 @@
 #include <sstream>
 #include "css_element.h"
 
+using simple_browser_css::Rule;
 using namespace std;
 
 int main(int argc, char **argv)
@@ -22,7 +23,7 @@ int main(int argc, char **argv)
     string source = ss.str();
 
     simple_browser_css::CssParser cssParser(source);
-    auto rules = cssParser.parse_css_rules();
+    vector<Rule> rules = cssParser.parse_css_rules();
     for (int i = 0; i < rules.size(); ++i) {
         rules[i].print(i == rules.size() - 1);
     }

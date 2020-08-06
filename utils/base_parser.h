@@ -14,7 +14,7 @@ class BaseParser {
     int32_t position;
 
     public:
-    BaseParser(string& source): source(source), position(0) {}
+    BaseParser(const string& source): source(source), position(0) {}
 
     bool eof() {
         return position >= source.length();

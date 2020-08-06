@@ -72,15 +72,15 @@ struct Declaration {
         uint8_t a;    
     } Color;
 
-    Declaration(string name, ValueType type, string kwd): 
+    Declaration(const string& name, ValueType type, const string& kwd): 
         name(name), type(type) {
         Keyword.keyword = kwd;
     }
-    Declaration(string name, ValueType type, tuple<float, string> length):
+    Declaration(const string& name, ValueType type, const tuple<float, string>& length):
         name(name), type(type) {
         tie(Length.data, Length.unit) = length;
     }
-    Declaration(string name, ValueType type, tuple<uint8_t, uint8_t, uint8_t, uint8_t> color):
+    Declaration(const string& name, ValueType type, const tuple<uint8_t, uint8_t, uint8_t, uint8_t>& color):
         name(name), type(type) {
         tie(Color.r, Color.g, Color.b, Color.a) = color;
     }
