@@ -44,6 +44,7 @@ class DomNode {
                 return;
         }
     }
+    ~DomNode() {}
     
     void print(int32_t depth, bool is_last_child, vector<int32_t>& list) {
         for (int32_t i = 0; i < depth; ++i) {

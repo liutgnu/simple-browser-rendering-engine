@@ -101,6 +101,17 @@ struct Value {
     }
     Value() {}
     ~Value() {}
+
+    string to_string() {
+        switch(type) {
+            case KEYWORD: return Keyword.keyword;
+            case LENGTH: return std::to_string(Length.data) + Length.unit;
+            case COLOR: return std::to_string(Color.r) + " " +
+                                std::to_string(Color.g) + " " +
+                                std::to_string(Color.b) + " " +
+                                std::to_string(Color.a);
+        }
+    }
 };
 
 struct Declaration {
@@ -116,7 +127,7 @@ struct Declaration {
     Declaration(const Declaration& de):name(de.name), value(de.value) {}
 
     string to_string() {
-        return name;
+        return name + ": " + value.to_string();
     }
 };
 
