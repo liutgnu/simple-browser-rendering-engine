@@ -2,6 +2,7 @@
 #include <map>
 #include <string>
 #include <sstream>
+#include <vector>
 
 using namespace std;
 auto is_char = [](char c) -> bool {
