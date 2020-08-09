@@ -42,5 +42,4 @@ class DomNode {
 
 void print_dom_node(DomNode& root, int32_t depth, bool is_last_child, vector<int32_t>& list);
 void print_dom_list(vector<DomNode> root_list);
-bool in_list(vector<int> *list, int val);
 }

@@ -1,16 +1,9 @@
 #include "dom.h"
+#include "../utils/checkers.h"
 
 using namespace std;
 namespace simple_browser_html {
 
-bool in_list(vector<int> *list, int val) {
-    for (vector<int>::iterator it = list->begin(); it != list->end(); ++it) {
-        if (val == *it)
-            return true;
-    }
-    return false;
-}
-    
 void DomNode::print(int32_t depth, bool is_last_child, vector<int32_t>& list) {
     for (int32_t i = 0; i < depth; ++i) {
         if (is_last_child && i == depth - 1) {
@@ -18,7 +11,7 @@ void DomNode::print(int32_t depth, bool is_last_child, vector<int32_t>& list) {
         } else if (!is_last_child && i == depth - 1) {
             std::cout << "\xE2\x94\x9c\xE2\x94\x80";
         }
-        else if (in_list(&list, i)) {
+        else if (in_vector(list, i, [](int32_t a, int32_t b) -> bool{ return a == b; })) {
             std::cout << "\xE2\x94\x82 ";
         }
         else 

@@ -1,4 +1,5 @@
-SOURCES = html_parser.cc
+SOURCES = html_parser.cc \
+			dom.cc
 
 MAIN_SOURCE = main.cc
 LIBRARY_OUT = html.o
