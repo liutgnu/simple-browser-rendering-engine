@@ -15,7 +15,7 @@ class StyleDomNode: public DomNode {
     
     public:
     map<string, Value> property_map;
-    vector<StyleDomNode> pp_list;
+    vector<StyleDomNode> child_sdn_list;
 
     public:
     StyleDomNode(const DomNode& dom_node, const vector<Rule>& rules): DomNode(dom_node) {
@@ -27,6 +27,7 @@ class StyleDomNode: public DomNode {
     bool match_selector(const Selector& selector);
     void trans_style(const vector<Rule>& rules);
     void print_property_map(int32_t depth, bool is_last_child, vector<int32_t>& list);
+    string display() const;
 };
 
 void style_dom_node_print(StyleDomNode& node, bool is_last_child);

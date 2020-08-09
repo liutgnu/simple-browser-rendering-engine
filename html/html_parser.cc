@@ -18,6 +18,7 @@ vector<DomNode> HtmlParser::parse_dom_nodes() {
 }
 
 DomNode HtmlParser::parse_dom_node() {
+    advance_position_loop(is_blank);
     if (starts_with_string("<")) {
         return element_node();
     } else {

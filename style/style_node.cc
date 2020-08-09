@@ -32,7 +32,7 @@ bool StyleDomNode::match_selector(const Selector& selector) {
 
     //id of dom node
     if (selector.id != "" &&
-        !find_in_map<string, string, decltype(string_equal)>
+        !exist_in_map<string, string, decltype(string_equal)>
             (attributes, "id", selector.id, string_equal)) {
         return false;
     }
@@ -65,6 +65,16 @@ void StyleDomNode::print_property_map(int32_t depth, bool is_last_child, vector<
     }
 }
 
+string StyleDomNode::display() const {
+    const Value* value = find_in_map(property_map, string("display"));
+    if (value) {
+        if (value->Keyword.keyword == "block" || value->Keyword.keyword == "none") {
+            return value->Keyword.keyword;
+        }
+    }
+    return "inline";
+}
+
 void style_dom_node_print(StyleDomNode& node, bool is_last_child) {
     static int32_t depth = 0;
     static vector<int32_t> list;
@@ -73,15 +83,15 @@ void style_dom_node_print(StyleDomNode& node, bool is_last_child) {
     node.print(depth, is_last_child, list);
     node.print_property_map(depth, is_last_child, list);
 
-    for (vector<StyleDomNode>::iterator it = node.pp_list.begin();
-        it != node.pp_list.end(); ++it) {
-        if (it == node.pp_list.begin()) {
+    for (vector<StyleDomNode>::iterator it = node.child_sdn_list.begin();
+        it != node.child_sdn_list.end(); ++it) {
+        if (it == node.child_sdn_list.begin()) {
             list.push_back(depth);
         }
-        if (it == node.pp_list.end() - 1) {
+        if (it == node.child_sdn_list.end() - 1) {
             list.pop_back();
         }
-        style_dom_node_print(*it, it == node.pp_list.end() - 1);
+        style_dom_node_print(*it, it == node.child_sdn_list.end() - 1);
     }
     --depth;
     }

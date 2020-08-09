@@ -22,7 +22,7 @@ int main(int argc, char **argv)
     string source = ss.str();
 
     simple_browser_html::HtmlParser htmlParser(source);
-    print_dom_list(htmlParser.parse_dom_nodes());
+    print_dom_node(htmlParser.parse_dom_node(), true);
 
     return 0;
 }

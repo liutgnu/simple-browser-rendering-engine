@@ -1,6 +1,7 @@
 #include "../html/html_parser.h"
 #include "../css/css_parser.h"
-#include "style_node_parser.h"
+#include "../style/style_node_parser.h"
+#include "layout_node.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -32,6 +33,7 @@ int main(int argc, char **argv)
     simple_browser_style::StyleDomNodeParser styleParser(
         htmlParser.parse_dom_node(), cssParser.parse_css_rules());
 
-    styleParser.print();
+    simple_browser_layout::LayoutNode root = simple_browser_layout::trans_style_dom(
+        styleParser.parse_style_dom_node(styleParser.domNode, styleParser.rules));
     return 0;
 }

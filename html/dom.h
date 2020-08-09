@@ -37,9 +37,8 @@ class DomNode {
     }
     ~DomNode() {}
     
-    void print(int32_t depth, bool is_last_child, vector<int32_t>& list);
+    void print(int32_t depth, bool is_last_child, vector<int32_t>& list) const;
 };
 
-void print_dom_node(DomNode& root, int32_t depth, bool is_last_child, vector<int32_t>& list);
-void print_dom_list(vector<DomNode> root_list);
+void print_dom_node(const DomNode& root, bool is_last_child);
 }

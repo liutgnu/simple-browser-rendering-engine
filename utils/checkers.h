@@ -63,10 +63,19 @@ auto split_string = [](const string& source, const vector<char>& delimits) -> ve
 };
 
 template<typename T, typename F, typename Q>
-bool find_in_map(map<T, F>& mapping, const T& key, const F& val, const Q& op) {
+bool exist_in_map(map<T, F>& mapping, const T& key, const F& val, const Q& op) {
     auto it = mapping.find(key);
     if (it != mapping.end() && op(it->second, val)) {
         return true;
     }
     return false;
+}
+
+template<typename K, typename V>
+const V* find_in_map(const map<K, V>& mapping, const K& key) {
+    auto it = mapping.find(key);
+    if (it == mapping.end()) {
+        return nullptr;
+    }
+    return &it->second;
 }
