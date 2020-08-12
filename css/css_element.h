@@ -66,6 +66,8 @@ struct Value {
     Value();
     ~Value();
 
+    bool operator==(const Value& v);
+    float to_px() const;
     string to_string();
 };
 

@@ -48,6 +48,34 @@ Value::Value(const Value& v) {
 Value::Value() {}
 Value::~Value() {}
 
+bool Value::operator==(const Value& v) {
+    if (type != v.type)
+        return false;
+    switch (v.type) {
+        case LENGTH:
+            return (Length.data == v.Length.data) && (Length.unit == v.Length.unit);
+        case KEYWORD:
+            return Keyword.keyword == v.Keyword.keyword;
+        case COLOR:
+            return (Color.r == v.Color.r) &&
+                    (Color.g == v.Color.g) &&
+                    (Color.b == v.Color.b) &&
+                    (Color.a == v.Color.a);
+       default:
+            cout << "error value type" << endl;
+            exit(-1);
+    }
+}
+
+float Value::to_px() const{
+    if (type == KEYWORD && Keyword.keyword == "auto")
+        return 0;
+    if (type == LENGTH && Length.unit == "px")
+        return Length.data;
+    cout << "error value type to_px" << endl;
+    exit(-1);    
+}
+
 string Value::to_string() {
     switch(type) {
         case KEYWORD: return Keyword.keyword;

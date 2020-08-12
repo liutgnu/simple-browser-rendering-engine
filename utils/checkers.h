@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <cstdarg>
 
 using namespace std;
 auto is_char = [](char c) -> bool {
@@ -78,4 +79,29 @@ const V* find_in_map(const map<K, V>& mapping, const K& key) {
         return nullptr;
     }
     return &it->second;
+}
+
+template<typename K, typename V>
+const V* find_in_map_or_default(const map<K, V>& mapping, const vector<K>& keys, const V* defalut) {
+    const V* ret;
+    for (auto pk = keys.cbegin(); pk != keys.cend(); ++pk) {
+        if (ret = find_in_map(mapping, *pk)) {
+            return ret;
+        }
+    }
+    return defalut;
+}
+
+template <typename T>
+vector<T> make_type_vector(int len, ...) {
+    vector<T> ret;
+    va_list va_p;
+    
+    va_start(va_p, len);
+    for (int i = 0; i < len; ++i) {
+        T tmp = va_arg(va_p, T);
+        ret.push_back(tmp);
+    }
+    va_end(va_p);
+    return ret;
 }
