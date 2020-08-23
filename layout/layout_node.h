@@ -80,6 +80,17 @@ LayoutNode combine_style_dom(const StyleDomNode& node) {
     return layoutNode;
 }
 
+vector<string> make_string_vector(int len, ...) {
+    vector<string> ret;
+    va_list va_p;
+    
+    va_start(va_p, len);
+    for (int i = 0; i < len; ++i) {
+        ret.push_back(string(va_arg(va_p, const char *)));
+    }
+    va_end(va_p);
+    return ret;    
+}
 
 void calculate_block_node_width(LayoutNode& node, const Box& container_box) {
     Value zero_length(make_tuple(0.0, "px"));
@@ -87,22 +98,22 @@ void calculate_block_node_width(LayoutNode& node, const Box& container_box) {
     float width_ma_L, width_ma_R, width_ma_; 
 
     const Value *margin_left = find_in_map_or_default(node.property_map, 
-        make_type_vector<string>(2, "margin-left", "margin"), &zero_length);
+        make_string_vector(2, "margin-left", "margin"), &zero_length);
     const Value *margin_right = find_in_map_or_default(node.property_map, 
-        make_type_vector<string>(2, "margin-right", "margin"), &zero_length);
+        make_string_vector(2, "margin-right", "margin"), &zero_length);
 
     const Value *padding_left = find_in_map_or_default(node.property_map, 
-        make_type_vector<string>(2, "padding-left", "padding"), &zero_length);
+        make_string_vector(2, "padding-left", "padding"), &zero_length);
     const Value *padding_right = find_in_map_or_default(node.property_map, 
-        make_type_vector<string>(2, "padding-right", "padding"), &zero_length);
+        make_string_vector(2, "padding-right", "padding"), &zero_length);
 
     const Value *border_left = find_in_map_or_default(node.property_map, 
-        make_type_vector<string>(2, "border-left-width", "border-width"), &zero_length);
+        make_string_vector(2, "border-left-width", "border-width"), &zero_length);
     const Value *border_right = find_in_map_or_default(node.property_map, 
-        make_type_vector<string>(2, "border-right-width", "border-width"), &zero_length);
+        make_string_vector(2, "border-right-width", "border-width"), &zero_length);
 
     const Value *width = find_in_map_or_default(node.property_map,
-        make_type_vector<string>(1, "width"), &zero_length);
+        make_string_vector(1, "width"), &zero_length);
 
     vector<Value> width_list_origin = make_type_vector<Value>(7, 
         *margin_left, *margin_right, *padding_left, 
@@ -115,7 +126,7 @@ void calculate_block_node_width(LayoutNode& node, const Box& container_box) {
     });
     float total = accumulate(width_list.cbegin(), width_list.cend(), 0, 
         [](float a, float b) {return a + b;});
-    float overflow = total - container_box.content.width;
+    float overflow = container_box.content.width - total;
 
     tuple<bool, bool, bool> result = make_tuple(
         auto_value == *margin_left, auto_value == *width, auto_value == *margin_right);
@@ -155,39 +166,43 @@ void calculate_block_node_width(LayoutNode& node, const Box& container_box) {
 
 void calculate_block_node_position(LayoutNode& node, const Box& container_box) {
     Value zero_length(make_tuple(0.0, "px")); 
-    node.box.margin.top = (node.property_map,
-        make_type_vector<string>(2, "margin-top", "margin"), &zero_length)->to_px();
-    node.box.margin.bottom = (node.property_map,
-        make_type_vector<string>(2, "margin-bottom", "margin"), &zero_length)->to_px();
-    node.box.border.top = (node.property_map,
-        make_type_vector<string>(2, "border-top", "border"), &zero_length)->to_px();
-    node.box.border.bottom = (node.property_map,
-        make_type_vector<string>(2, "border-bottom", "border"), &zero_length)->to_px();
-    node.box.padding.top = (node.property_map,
-        make_type_vector<string>(2, "padding-top", "padding"), &zero_length)->to_px();
-    node.box.padding.bottom = (node.property_map,
-        make_type_vector<string>(2, "padding-bottom", "padding"), &zero_length)->to_px();
+    node.box.margin.top = find_in_map_or_default(node.property_map,
+        make_string_vector(2, "margin-top", "margin"), &zero_length)->to_px();
+    node.box.margin.bottom = find_in_map_or_default(node.property_map,
+        make_string_vector(2, "margin-bottom", "margin"), &zero_length)->to_px();
+    node.box.border.top = find_in_map_or_default(node.property_map,
+        make_string_vector(2, "border-top-width", "border-width"), &zero_length)->to_px();
+    node.box.border.bottom = find_in_map_or_default(node.property_map,
+        make_string_vector(2, "border-bottom-width", "border-width"), &zero_length)->to_px();
+    node.box.padding.top = find_in_map_or_default(node.property_map,
+        make_string_vector(2, "padding-top", "padding"), &zero_length)->to_px();
+    node.box.padding.bottom = find_in_map_or_default(node.property_map,
+        make_string_vector(2, "padding-bottom", "padding"), &zero_length)->to_px();
     node.box.content.x = container_box.content.x + node.box.margin.left + 
         node.box.border.left + node.box.padding.left;
-    node.box.content.y = container_box.content.y + node.box.margin.top + 
-        node.box.border.top + node.box.padding.top;
+    node.box.content.y = container_box.content.height + container_box.content.y + 
+        node.box.margin.top + node.box.border.top + node.box.padding.top;
 }
 
-// void calculate_block_children(LayoutNode& node) {
+void layout_block_node(LayoutNode& node, const Box& container_box);
+void calculate_block_children(LayoutNode& node) {
+    for (int i = 0; i < node.child_list.size(); ++i) {
+        layout_block_node(node.child_list[i], node.box);
+        node.box.content.height += node.child_list[i].box.content.height +
+            node.child_list[i].box.margin.top + node.child_list[i].box.margin.bottom + 
+            node.child_list[i].box.border.top + node.child_list[i].box.border.bottom + 
+            node.child_list[i].box.padding.top + node.child_list[i].box.padding.bottom;
+    }
+}
 
-// }
-
-// void calculate_block_node_layout(LayoutNode& node, const Box& container_box) {
-//     switch (node.type) {
-//         case BLOCK:
-//             return calculate_block_node_width(node, container_box);
-//         case INLINE:
-//         case ANONYMOUS:
-//             return;
-//         default:
-//             assert(false);
-//     }
-// }
+void layout_block_node(LayoutNode& node, const Box& container_box) {
+    calculate_block_node_width(node, container_box);
+    calculate_block_node_position(node, container_box);
+    calculate_block_children(node);
+    Value def_height(make_tuple(node.box.content.height, "px"));
+    node.box.content.height = find_in_map_or_default(node.property_map, 
+       make_string_vector(1, "height"), &def_height)->to_px();
+}
 
 void layout_node_print(LayoutNode& node, bool is_last_child) {
     static int32_t depth = 0;

@@ -99,8 +99,7 @@ vector<T> make_type_vector(int len, ...) {
     
     va_start(va_p, len);
     for (int i = 0; i < len; ++i) {
-        T tmp = va_arg(va_p, T);
-        ret.push_back(tmp);
+        ret.push_back(va_arg(va_p, T));
     }
     va_end(va_p);
     return ret;

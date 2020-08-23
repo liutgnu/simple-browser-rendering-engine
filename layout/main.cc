@@ -35,6 +35,14 @@ int main(int argc, char **argv)
 
     simple_browser_layout::LayoutNode root = simple_browser_layout::combine_style_dom(
         styleParser.parse_style_dom_node(styleParser.domNode, styleParser.rules));
+
+    simple_browser_layout::Box canvas;
+    canvas.content.x = 0;
+    canvas.content.y = 0;
+    canvas.content.width = 800;
+    canvas.content.height = 0;
+
+    simple_browser_layout::layout_block_node(root, canvas);
     simple_browser_layout::layout_node_print(root, true);
     return 0;
 }
