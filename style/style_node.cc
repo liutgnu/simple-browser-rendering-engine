@@ -52,7 +52,6 @@ void StyleDomNode::trans_style(const vector<Rule>& rules) {
 }
 
 void StyleDomNode::print_property_map(int32_t depth, bool is_last_child, vector<int32_t>& list) {
-
     for (map<string, Value>::iterator it = property_map.begin(); it != property_map.end(); ++it) {
         for (int32_t i = 0; i < depth; ++i) {
             if (in_vector(list, i, [](int32_t a, int32_t b) -> bool { return a == b; })) {

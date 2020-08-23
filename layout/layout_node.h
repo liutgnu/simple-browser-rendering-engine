@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <vector>
 #include <numeric>
+#include <cstring>
 
 using namespace std;
 using namespace simple_browser_style;
@@ -16,13 +17,38 @@ class LayoutNode : public StyleDomNode {
     vector<LayoutNode> child_list;
 
     LayoutNode(BoxTypeEnum box_type, const StyleDomNode& node):
-        box_type(box_type), StyleDomNode(node) { }
-    LayoutNode(BoxTypeEnum box_type): box_type(box_type){ }
-    LayoutNode() {}
+        box_type(box_type), StyleDomNode(node) {
+            memset(&box, 0, sizeof(box));
+        }
+    LayoutNode(BoxTypeEnum box_type): box_type(box_type) {
+        memset(&box, 0, sizeof(box));
+    }
+    LayoutNode() {
+        memset(&box, 0, sizeof(box));
+    }
+
+    void print_box_property(int32_t depth, bool is_last_child, vector<int32_t>& list) {
+        vector<string> box_properties;
+        box_properties.push_back(box.get_content());
+        box_properties.push_back(box.get_margin());
+        box_properties.push_back(box.get_border());
+        box_properties.push_back(box.get_padding());
+
+        for (vector<string>::iterator it = box_properties.begin(); it != box_properties.end(); ++it) {
+            for (int32_t i = 0; i < depth; ++i) {
+                if (in_vector(list, i, [](int32_t a, int32_t b) -> bool { return a == b; })) {
+                    std::cout << "\xE2\x94\x82 ";
+                }
+                else 
+                    std::cout << "  ";
+            }
+            cout << *it << endl;
+        }
+    }
 
 };
 
-LayoutNode trans_style_dom(const StyleDomNode& node) {
+LayoutNode combine_style_dom(const StyleDomNode& node) {
     LayoutNode layoutNode;
 
     if (node.display() == "block") {
@@ -35,17 +61,17 @@ LayoutNode trans_style_dom(const StyleDomNode& node) {
 
     for (auto it = node.child_sdn_list.begin(); it != node.child_sdn_list.end(); ++it) {
         if (it->display() == "block") {
-            layoutNode.child_list.push_back(trans_style_dom(*it));
+            layoutNode.child_list.push_back(combine_style_dom(*it));
         } else if (it->display() == "none") {
             continue;
         } else if (it->display() == "inline") {
             if (layoutNode.box_type == INLINE) {
-                layoutNode.child_list.push_back(trans_style_dom(*it));
+                layoutNode.child_list.push_back(combine_style_dom(*it));
             } else {
                 if (layoutNode.child_list.size() == 0 || layoutNode.child_list.back().box_type != ANONYMOUS) {
                     layoutNode.child_list.push_back(LayoutNode(ANONYMOUS));
                 }
-                layoutNode.child_list.back().child_list.push_back(trans_style_dom(*it));
+                layoutNode.child_list.back().child_list.push_back(combine_style_dom(*it));
             }
         } else {
             assert(false);
@@ -147,9 +173,9 @@ void calculate_block_node_position(LayoutNode& node, const Box& container_box) {
         node.box.border.top + node.box.padding.top;
 }
 
-void calculate_block_children(LayoutNode& node) {
+// void calculate_block_children(LayoutNode& node) {
 
-}
+// }
 
 // void calculate_block_node_layout(LayoutNode& node, const Box& container_box) {
 //     switch (node.type) {
@@ -162,5 +188,27 @@ void calculate_block_children(LayoutNode& node) {
 //             assert(false);
 //     }
 // }
+
+void layout_node_print(LayoutNode& node, bool is_last_child) {
+    static int32_t depth = 0;
+    static vector<int32_t> list;
+
+    ++depth;
+    node.print(depth, is_last_child, list);
+    node.print_box_property(depth, is_last_child, list);
+
+    for (vector<LayoutNode>::iterator it = node.child_list.begin();
+        it != node.child_list.end(); ++it) {
+        if (it == node.child_list.begin()) {
+            list.push_back(depth);
+        }
+        if (it == node.child_list.end() - 1) {
+            list.pop_back();
+        }
+        layout_node_print(*it, it == node.child_list.end() - 1);
+    }
+    --depth;
+}
+
 
 }

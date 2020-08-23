@@ -33,7 +33,8 @@ int main(int argc, char **argv)
     simple_browser_style::StyleDomNodeParser styleParser(
         htmlParser.parse_dom_node(), cssParser.parse_css_rules());
 
-    simple_browser_layout::LayoutNode root = simple_browser_layout::trans_style_dom(
+    simple_browser_layout::LayoutNode root = simple_browser_layout::combine_style_dom(
         styleParser.parse_style_dom_node(styleParser.domNode, styleParser.rules));
+    simple_browser_layout::layout_node_print(root, true);
     return 0;
 }
