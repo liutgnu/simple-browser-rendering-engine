@@ -1,0 +1,11 @@
+#pragma once
+
+#define RED 255,0,0,255
+#define ORANGE 255,165,0,255
+#define YELLOW 255,255,0,255
+#define GREEN 0,128,0,255
+#define BLUE 0,0,255,255
+#define INDIGO 75,0,130,255
+#define PURPLE 128,0,128,255
+#define WHITE 255,255,255,255
+#define TRANSPARENT 255,255,255,0

@@ -1,5 +1,6 @@
 #pragma once
 #include <cstring>
+#include <string>
 using namespace std;
 namespace simple_browser_layout {
 
