@@ -14,14 +14,11 @@ $(LIBRARY_OUT): $(OBJS) $(SOURCES)
 compile = (cd $(dir $(1)); make $(notdir $(1)))
 
 $(LIBRARY_EXTRAS):
-	$(call compile, $@)
+	$(call compile,$@)
 
-intergrate: $(MAIN_SOURCE) $(LIBRARY_OUT) $(LIBRARY_EXTRAS)
+intergrate: $(MAIN_SOURCE) $(UTILS_SOURCE) $(LIBRARY_OUT) $(LIBRARY_EXTRAS)
 	@echo 'LD $(INTERGRATE_TEST_OUT)'
 	@$(CXX) $(EXTRA_CFLAGS) -g -o $(INTERGRATE_TEST_OUT) $^ $(EXTRA_LDFLAGS)
 
 .PHONEY clean:
-ifdef LIBRARY_EXTRAS
-	(cd $(dir $(word 1, $(LIBRARY_EXTRAS))); make clean)
-endif
-	find ./ -regextype posix-extended -regex ".*\.(o|out)" | xargs rm -f
+	$(foreach lib,$(LIBRARY_EXTRAS) + ../utils/ + ./, find $(dir $(lib)) -regextype posix-extended -regex ".*\.(o|out)" |xargs rm -f;)

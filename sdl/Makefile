@@ -2,6 +2,7 @@ SOURCES = sdl_drawer.cc \
 			sdl_drawer_interface.cc
 
 MAIN_SOURCE = main.cc
+UTILS_SOURCE = ../utils/font_manager.cc
 LIBRARY_OUT = drawer.o
 INTERGRATE_TEST_OUT = drawerprog.out
 

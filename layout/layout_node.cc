@@ -17,6 +17,13 @@ LayoutNode::LayoutNode() {
 
 void LayoutNode::print_box_property(int32_t depth, bool is_last_child, vector<int32_t>& list) {
     vector<string> box_properties;
+    string type;
+    switch(box_type) {
+        case BLOCK: type = "BLOCK"; break;
+        case INLINE: type = "INLINE"; break;
+        case ANONYMOUS: type = "ANONYMOUS"; break;
+    }
+    box_properties.push_back(type);
     box_properties.push_back(box.get_content());
     box_properties.push_back(box.get_margin());
     box_properties.push_back(box.get_border());
@@ -166,29 +173,177 @@ void calculate_block_node_position(LayoutNode& node, const Box& container_box) {
         make_string_vector(2, "padding-bottom", "padding"), &zero_length)->to_px();
     node.box.content.x = container_box.content.x + node.box.margin.left + 
         node.box.border.left + node.box.padding.left;
-    node.box.content.y = container_box.content.height + container_box.content.y + 
+    node.box.content.y = container_box.content.y + container_box.content.height + 
         node.box.margin.top + node.box.border.top + node.box.padding.top;
 }
 
-void layout_block_node(LayoutNode& node, const Box& container_box);
-void calculate_block_children(LayoutNode& node) {
+void layout_block_node(LayoutNode& node, const Box& container_box,
+    Fake_Box& container_fakebox, float& container_current_max_lineheight);
+void layout_inline_node(LayoutNode& node, const Box& container_box, 
+    Fake_Box& container_fakebox, float& container_current_max_lineheight);
+
+void calculate_layout_children(LayoutNode& node, Fake_Box* fake_box) {
+    float max_lineheight = 0;
     for (int i = 0; i < node.child_list.size(); ++i) {
-        layout_block_node(node.child_list[i], node.box);
-        node.box.content.height += node.child_list[i].box.content.height +
-            node.child_list[i].box.margin.top + node.child_list[i].box.margin.bottom + 
-            node.child_list[i].box.border.top + node.child_list[i].box.border.bottom + 
-            node.child_list[i].box.padding.top + node.child_list[i].box.padding.bottom;
+        switch (node.child_list[i].box_type) {
+            case BLOCK: 
+            case ANONYMOUS: {
+                layout_block_node(node.child_list[i], node.box, *fake_box, max_lineheight);
+                node.box.content.height += node.child_list[i].box.content.height +
+                    node.child_list[i].box.margin.top + node.child_list[i].box.margin.bottom + 
+                    node.child_list[i].box.border.top + node.child_list[i].box.border.bottom + 
+                    node.child_list[i].box.padding.top + node.child_list[i].box.padding.bottom;
+                break;
+            }
+            case INLINE: {
+                layout_inline_node(node.child_list[i], node.box, *fake_box, max_lineheight);
+                break;
+            }
+            default: // should never reach here
+                assert(true);
+        }
+    }    
+}
+
+void layout_block_node(LayoutNode& node, const Box& container_box, 
+    Fake_Box& container_fakebox, float& container_current_max_lineheight) {
+
+    Fake_Box fake_box {
+        .width = 0,
+        .height = 0,
+        .pen_x = container_fakebox.pen_x,
+        .pen_y = container_fakebox.pen_y,
+    };
+
+    calculate_block_node_width(node, container_box);
+    calculate_block_node_position(node, container_box);
+    fake_box.pen_x = container_box.content.x;
+    fake_box.pen_y = container_box.content.y;
+    calculate_layout_children(node, &fake_box);
+    Value def_height(make_tuple(fake_box.height, "px"));
+    node.box.content.height = find_in_map_or_default(node.property_map, 
+       make_string_vector(1, "height"), &def_height)->to_px();
+
+    float total_height = node.box.margin.top + node.box.margin.bottom + 
+        node.box.border.top + node.box.border.bottom + node.box.padding.top + 
+        node.box.padding.bottom + node.box.content.height;
+
+    // update pen position
+    container_fakebox.pen_x = container_box.content.x;
+    container_fakebox.pen_y += total_height;
+
+    // update container fake box size
+    container_fakebox.width = container_box.content.width;
+    container_fakebox.height += total_height;
+    
+    // update current line height
+    container_current_max_lineheight = 0;     
+}
+
+void layout_inline_node(LayoutNode& node, const Box& container_box, 
+    Fake_Box& container_fakebox, float& container_current_max_lineheight) {
+    
+    Fake_Box fake_box {
+        .width = 0,
+        .height = 0,
+        .pen_x = container_fakebox.pen_x,
+        .pen_y = container_fakebox.pen_y,
+    };
+    calculate_layout_children(node, &fake_box);
+
+    Value zero_length(make_tuple(0.0, "px")); 
+    node.box.margin.top = find_in_map_or_default(node.property_map,
+        make_string_vector(2, "margin-top", "margin"), &zero_length)->to_px();
+    node.box.margin.bottom = find_in_map_or_default(node.property_map,
+        make_string_vector(2, "margin-bottom", "margin"), &zero_length)->to_px();
+    node.box.border.top = find_in_map_or_default(node.property_map,
+        make_string_vector(2, "border-top-width", "border-width"), &zero_length)->to_px();
+    node.box.border.bottom = find_in_map_or_default(node.property_map,
+        make_string_vector(2, "border-bottom-width", "border-width"), &zero_length)->to_px();
+    node.box.padding.top = find_in_map_or_default(node.property_map,
+        make_string_vector(2, "padding-top", "padding"), &zero_length)->to_px();
+    node.box.padding.bottom = find_in_map_or_default(node.property_map,
+        make_string_vector(2, "padding-bottom", "padding"), &zero_length)->to_px();
+
+    node.box.margin.left = find_in_map_or_default(node.property_map, 
+        make_string_vector(2, "margin-left", "margin"), &zero_length)->to_px();
+    node.box.margin.right = find_in_map_or_default(node.property_map, 
+        make_string_vector(2, "margin-right", "margin"), &zero_length)->to_px();
+    node.box.padding.left = find_in_map_or_default(node.property_map, 
+        make_string_vector(2, "padding-left", "padding"), &zero_length)->to_px();
+    node.box.padding.right = find_in_map_or_default(node.property_map, 
+        make_string_vector(2, "padding-right", "padding"), &zero_length)->to_px();
+    node.box.border.left = find_in_map_or_default(node.property_map, 
+        make_string_vector(2, "border-left-width", "border-width"), &zero_length)->to_px();
+    node.box.border.right = find_in_map_or_default(node.property_map, 
+        make_string_vector(2, "border-right-width", "border-width"), &zero_length)->to_px();
+
+    Value def_height(make_tuple(fake_box.height, "px"));
+    node.box.content.height = find_in_map_or_default(node.property_map, 
+       make_string_vector(1, "height"), &def_height)->to_px();
+    Value def_width(make_tuple(fake_box.width, "px"));
+    node.box.content.width = find_in_map_or_default(node.property_map, 
+       make_string_vector(1, "width"), &def_width)->to_px();
+
+    float total_width = node.box.margin.left + node.box.margin.right + node.box.border.left + 
+        node.box.border.right + node.box.padding.left + node.box.padding.right + node.box.content.width;
+    float total_height = node.box.margin.top + node.box.margin.bottom + node.box.border.top + 
+        node.box.border.bottom + node.box.padding.top + node.box.padding.bottom + node.box.content.height;
+    
+    if (container_box.content.width > 0 && 
+        container_fakebox.pen_x - container_box.content.x + total_width > container_box.content.width) {
+        // exceed container, then new line
+        // update pen positon to new line
+        container_fakebox.pen_x = container_box.content.x;
+        container_fakebox.pen_y += container_current_max_lineheight;
+        container_current_max_lineheight = 0;
+
+        // draw here
+        node.box.content.x = container_fakebox.pen_x + node.box.margin.left + 
+            node.box.border.left + node.box.padding.left;
+        node.box.content.y = container_fakebox.pen_y + node.box.margin.top + 
+            node.box.border.top + node.box.padding.top;
+
+        // recalculate children layout
+        Fake_Box fake_box {
+            .width = 0,
+            .height = 0,
+            .pen_x = container_fakebox.pen_x,
+            .pen_y = container_fakebox.pen_y,
+        };
+        calculate_layout_children(node, &fake_box);
+
+        // update pen position
+        container_fakebox.pen_x += total_width;
+
+        // update container fake box size
+        container_fakebox.width = total_width > container_fakebox.width ? total_width : container_fakebox.width;
+        container_fakebox.height += total_height;
+        
+        // update current line height
+        container_current_max_lineheight = total_height;        
+    } else {
+        // not exceeded, follow current position
+        // draw here
+        node.box.content.x = container_fakebox.pen_x + node.box.margin.left + 
+            node.box.border.left + node.box.padding.left;
+        node.box.content.y = container_fakebox.pen_y + node.box.margin.top + 
+            node.box.border.top + node.box.padding.top;
+
+        // update pen position
+        container_fakebox.pen_x += total_width;
+
+        // update container fake box size
+        container_fakebox.width += total_width;
+        container_fakebox.height += (total_height - container_current_max_lineheight) > 0 ? 
+            (total_height - container_current_max_lineheight) : 0;
+
+        // update current line height
+        container_current_max_lineheight = container_current_max_lineheight > total_height ? 
+            container_current_max_lineheight : total_height;
     }
 }
 
-void layout_block_node(LayoutNode& node, const Box& container_box) {
-    calculate_block_node_width(node, container_box);
-    calculate_block_node_position(node, container_box);
-    calculate_block_children(node);
-    Value def_height(make_tuple(node.box.content.height, "px"));
-    node.box.content.height = find_in_map_or_default(node.property_map, 
-       make_string_vector(1, "height"), &def_height)->to_px();
-}
 
 void layout_node_print(LayoutNode& node, bool is_last_child) {
     static int32_t depth = 0;

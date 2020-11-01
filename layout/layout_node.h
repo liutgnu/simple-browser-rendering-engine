@@ -6,6 +6,13 @@
 #include <numeric>
 #include <cstring>
 
+typedef struct Fake_Box {
+    float width;
+    float height;
+    float pen_x;
+    float pen_y;
+} Fake_Box;
+
 using namespace std;
 using namespace simple_browser_style;
 namespace simple_browser_layout {
@@ -23,7 +30,8 @@ class LayoutNode : public StyleDomNode {
 
 };
 
-void layout_block_node(LayoutNode& node, const Box& container_box);
+void layout_block_node(LayoutNode& node, const Box& container_box,
+    Fake_Box& container_fakebox, float& container_current_max_lineheight);
 void layout_node_print(LayoutNode& node, bool is_last_child);
 LayoutNode combine_style_dom(const StyleDomNode& node);
 }

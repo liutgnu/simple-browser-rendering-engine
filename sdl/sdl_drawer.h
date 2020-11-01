@@ -23,17 +23,6 @@ struct ResourcesStruct {
     SDL_Texture* white_texture;
     SDL_Rect white_rect;
 
-    FT_Library ft_lib;
-    FT_Bitmap ft_target;
-    FT_Face ft_face;
-    SDL_Color font_colors[256];
-    SDL_Rect font_rect;
-    int font_size;
-    struct font_baseline_position {
-        int x;
-        int y;
-    } font_baseline_position;
-
     ResourcesStruct() {
         clear();
     }
@@ -45,11 +34,11 @@ struct ResourcesStruct {
 
 class SdlDrawer {
 private:
-    struct ResourcesStruct res;
     int window_width;
     int window_height;
 
 public:
+    struct ResourcesStruct res;
     SdlDrawer(int window_width, int window_height):
     window_width(window_width), window_height(window_height) {
         SDL_Init(SDL_INIT_VIDEO);
@@ -62,7 +51,7 @@ public:
     bool init_sdldrawer() {
         string message;
 
-        if (!(res.window = SDL_CreateWindow("Test", 
+        if (!(res.window = SDL_CreateWindow("My Awesome Browser", 
             SDL_WINDOWPOS_CENTERED, 0,
             window_width, window_height, SDL_WINDOW_SHOWN))) {
             message = "window";
@@ -82,16 +71,6 @@ public:
         }
         SDL_RenderClear(res.render);
         SDL_SetRenderDrawBlendMode(res.render, SDL_BLENDMODE_BLEND);
-
-        FT_Init_FreeType(&res.ft_lib);
-        FT_New_Face(res.ft_lib, "/home/liut/my/browser/sdl/wqy-zenhei.ttc", 0, &res.ft_face);
-        for( int i = 0; i < 256; i++)
-        {
-            res.font_colors[i].r = res.font_colors[i].g = res.font_colors[i].b = i;
-        }
-
-        res.font_baseline_position.x = 0;
-        res.font_baseline_position.y = 0;
 
         res.white_rect.x = 0;
         res.white_rect.y = 0;
@@ -117,8 +96,6 @@ public:
             SDL_DestroyTexture(res.white_texture);
         }
 
-        FT_Done_Face(res.ft_face);
-        FT_Done_FreeType(res.ft_lib);
         res.clear();
     }
 
@@ -138,16 +115,23 @@ public:
             SDL_RenderCopy(res.render, res.white_texture, nullptr, &res.white_rect);
             for(int i = 0; i < drawer_interface.rect_list.size(); ++i) {
                 drawer.draw(drawer_interface.rect_list[i]);
-                // cout << "fff" << endl;
-                // sleep(1);
-                // SDL_RenderPresent(res.render);
+            }
+
+            for (int i = 0; i < drawer_interface.font_list.size(); ++i) {
+                SDL_SetRenderDrawColor(res.render, 
+                    drawer_interface.font_list[i].background_color.r,
+                    drawer_interface.font_list[i].background_color.g,
+                    drawer_interface.font_list[i].background_color.b,
+                    drawer_interface.font_list[i].background_color.a
+                    );
+                SDL_RenderFillRect(res.render, &drawer_interface.font_list[i].background_rect);
+                SDL_RenderCopy(res.render, drawer_interface.font_list[i].font_texture,
+                    nullptr, &drawer_interface.font_list[i].font_rect);
             }
             
             SDL_RenderPresent(res.render);
         }
     }
-
-
 };
 
 };

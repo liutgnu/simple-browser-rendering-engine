@@ -33,8 +33,9 @@ int main(int argc, char **argv)
     simple_browser_style::StyleDomNodeParser styleParser(
         htmlParser.parse_dom_node(), cssParser.parse_css_rules());
 
+    styleParser.print();
     simple_browser_layout::LayoutNode root = simple_browser_layout::combine_style_dom(
-        styleParser.parse_style_dom_node(styleParser.domNode, styleParser.rules));
+        styleParser.parse_style_dom_node(styleParser.domNode, styleParser.rules, nullptr));
 
     simple_browser_layout::Box canvas;
     canvas.content.x = 0;
@@ -42,7 +43,16 @@ int main(int argc, char **argv)
     canvas.content.width = 800;
     canvas.content.height = 0;
 
-    simple_browser_layout::layout_block_node(root, canvas);
+    Fake_Box fake_box {
+        .width = 0,
+        .height = 0,
+        .pen_x = 0,
+        .pen_y = 0,
+    };
+
+    float line_height = 0;
+
+    simple_browser_layout::layout_block_node(root, canvas, fake_box, line_height);
     simple_browser_layout::layout_node_print(root, true);
     return 0;
 }

@@ -3,6 +3,7 @@
 #include "shape_drawer.h"
 #include "../utils/checkers.h"
 #include "color.h"
+#include "../utils/font_manager.h"
 
 using namespace simple_browser_layout;
 using namespace std;
@@ -54,13 +55,17 @@ vector<string> make_string_vector(int len, ...) {
 class SdlDrawerInterface {
 
 public:
-    vector<Html_rect> rect_list;
+    vector<Html_Rect> rect_list;
+    vector<Font_Draw_Info> font_list;
+    FontManager& font_manager;
+    SDL_Renderer *render;
 
-    SdlDrawerInterface() {}
+    SdlDrawerInterface(FontManager& font_manager, SDL_Renderer *render): 
+        font_manager(font_manager), render(render){}
 
     void iterate_layout_tree(const LayoutNode& node) {
 
-        Html_rect content_rect;
+        Html_Rect content_rect;
         content_rect.rect = convert_from_layout_rect(node.box.content);
         content_rect.edge = Rect_Edge {
             .t = content_rect.rect.h,
@@ -76,7 +81,7 @@ public:
         
         rect_list.push_back(content_rect);
 
-        Html_rect padding_rect;
+        Html_Rect padding_rect;
         padding_rect.edge = convert_from_layout_edge(node.box.padding);
         padding_rect.rect.x = content_rect.rect.x - padding_rect.edge.l;
         padding_rect.rect.y = content_rect.rect.y - padding_rect.edge.t;
@@ -88,7 +93,7 @@ public:
 
         rect_list.push_back(padding_rect);
 
-        Html_rect border_rect;
+        Html_Rect border_rect;
         border_rect.edge = convert_from_layout_edge(node.box.border);
         border_rect.rect.x = padding_rect.rect.x - border_rect.edge.l;
         border_rect.rect.y = padding_rect.rect.y - border_rect.edge.t;
@@ -99,6 +104,30 @@ public:
             make_string_vector(1, "border-color"), &v));
 
         rect_list.push_back(border_rect);
+
+        if (node.type == TEXT) {
+            Value transparent_color(make_tuple(TRANSPARENT));
+            Value black_color(make_tuple(BLACK));
+
+            if (const Value *tmp = find_in_map(node.property_map, string("font-size"))) {
+                font_manager.set_font_size(tmp->to_px());
+            }
+
+            wstring text = font_manager.convert_to_wstring(node.text);
+            font_manager.draw_string(text, 
+                Font_Color {
+                    .font_color = *(SDL_Color *)(&find_in_map_or_default(node.property_map,
+                        make_string_vector(1, "color"), &black_color)->Color),
+                    .background_color = *(SDL_Color *)(&find_in_map_or_default(node.property_map,
+                        make_string_vector(1, "background"), &transparent_color)->Color),
+                }, 
+                Font_Position {
+                    .x = content_rect.rect.x,
+                    .y = content_rect.rect.y + (int)(font_manager.ft_face->size->metrics.ascender >> 6),
+                },
+                font_list, render);
+            font_manager.restore_default_font_size();    
+        }
 
         for (vector<LayoutNode>::const_iterator it = node.child_list.begin();
             it != node.child_list.end(); ++it) {

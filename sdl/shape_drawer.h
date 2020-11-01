@@ -15,17 +15,13 @@ typedef struct HtmlRect {
     SDL_Rect rect;
     Rect_Edge edge;
     SDL_Color color;
-} Html_rect;
+} Html_Rect;
 
 class SdlShapeDrawer {
 protected:
     SDL_Renderer *render = nullptr;
     SDL_Texture *white_texture = nullptr;
 public:
-    int x = 0;
-    int y = 0;
-    int h = 0;
-    int w = 0;
     SdlShapeDrawer(SDL_Renderer *render, SDL_Texture *white_texture):
         render(render), white_texture(white_texture) {}
 };
@@ -36,7 +32,7 @@ public:
     SdlRectDrawer(SDL_Renderer *render, SDL_Texture *white_texture):
         SdlShapeDrawer(render, white_texture) {}
 
-    void draw(Html_rect html_rect) {
+    void draw(Html_Rect html_rect) {
         SDL_Color origin_color;
         SDL_GetRenderDrawColor(render, 
             &origin_color.r, &origin_color.g, &origin_color.b, &origin_color.a);
@@ -77,9 +73,4 @@ public:
         SDL_SetRenderDrawColor(render, 
             origin_color.r, origin_color.g, origin_color.b, origin_color.a);
     }
-};
-
-class SdlFontDrawer: SdlShapeDrawer {
-
-
 };

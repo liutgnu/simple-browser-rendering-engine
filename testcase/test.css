@@ -1,0 +1,42 @@
+span {
+  display: inline;
+}
+
+html {
+  width: 600px;
+  padding: 10px;
+  border-width: 1px;
+  border-color: #000000;
+  margin: auto;
+  background: #ffffff;
+}
+
+head {
+  display: none;
+}
+
+.outer {
+  background: #00ccff;
+  border-color: #666666;
+  border-width: 2px;
+  margin: 50px;
+  padding: 50px;
+}
+
+.inner {
+  border-color: #cc0000;
+  border-width: 4px;
+  height: 100px;
+  margin-bottom: 20px;
+  width: 500px;
+}
+
+.inner#bye {
+  background: #ffff00;
+}
+
+span#name {
+  background: #cc0000;
+  color: #ffffff;
+  font-size: 30px;
+}

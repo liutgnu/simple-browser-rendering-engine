@@ -1,4 +1,7 @@
 #include "style_node.h"
+#include "../utils/dom_elements.h"
+#include "../utils/font_manager.h"
+#include <assert.h>
 
 using namespace std;
 using namespace simple_browser_html;
@@ -6,11 +9,12 @@ using namespace simple_browser_css;
 
 namespace simple_browser_style {
 
-bool StyleDomNode::match_selector(const Selector& selector) {
+bool StyleDomNode::match_selector(const Selector& selector, int &weight) {
+    weight = 0;
 
     // tag of dom node
-    if ((selector.tag != "") && (tag_name != selector.tag)) {
-        return false;
+    if ((selector.tag != "") && (tag_name == selector.tag)) {
+        weight += 1;
     }
 
     vector<char> delimits;
@@ -19,35 +23,65 @@ bool StyleDomNode::match_selector(const Selector& selector) {
 
     // class of dom node
     if (selector.class_list.size() > 0) {
-        if (any_of(selector.class_list.begin(), selector.class_list.end(), [&](string selc)-> bool {
-            auto it = attributes.find("class");
-            if (it != attributes.end()) {
-                return !in_vector(split_string(it->second, delimits), selc, string_equal);
+        int tmp = 0;
+        auto it = attributes.find("class");
+        if (it != attributes.end()) {
+            vector<string> attributes_class = split_string(it->second, delimits);
+            for (auto iit = selector.class_list.begin(); iit != selector.class_list.end(); ++iit) {
+                if (in_vector(attributes_class, *iit, string_equal)) {
+                    tmp += 10;
+                } else {
+                    goto out;
+                }
             }
-            return true;
-        })) {
-            return false;
         }
+        weight += tmp;
+    out:
+        weight += 0;
     }
 
     //id of dom node
     if (selector.id != "" &&
-        !exist_in_map<string, string, decltype(string_equal)>
+        exist_in_map<string, string, decltype(string_equal)>
             (attributes, "id", selector.id, string_equal)) {
-        return false;
+        weight += 100;
     }
-    return true;
+
+    return weight > 0;
 }
 
 void StyleDomNode::trans_style(const vector<Rule>& rules) {
+    struct Weight_Cmp {
+        bool operator()(const int& k1, const int& k2) {
+            return k1 > k2;
+        }
+    };
+    map<int, vector<Declaration>, Weight_Cmp> selector_priority_map;
+
     for (int i = 0; i < rules.size(); ++i) {
         for (int j = 0; j < rules[i].selectors.size(); ++j) {
-            if (match_selector(rules[i].selectors[j])) {
-                for (int k = 0; k < rules[i].declarations.size(); ++k) {
-                    property_map.insert(make_pair(rules[i].declarations[k].name, rules[i].declarations[k].value));
-                }
+            int tmp;
+            if (match_selector(rules[i].selectors[j], tmp)) {
+                selector_priority_map.insert(make_pair(tmp, rules[i].declarations));
             }
         }
+    }
+    for (auto it = selector_priority_map.begin(); it != selector_priority_map.end(); ++it) {
+        for (int i = 0; i < it->second.size(); ++i) {
+            property_map.insert(make_pair(it->second[i].name, it->second[i].value));
+        }
+    }
+    
+/////////for test
+    if (type == TEXT) {
+        FontManager font_manager;
+        if (const Value *tmp = find_in_map(property_map, string("font-size"))) {
+            font_manager.set_font_size(tmp->to_px());
+        }
+        wstring wtext = font_manager.convert_to_wstring(text);
+        tuple<int, int> wh_size = font_manager.get_string_width_length(wtext);
+        property_map.insert(make_pair("width", Value(make_tuple(get<0>(wh_size), "px"))));
+        property_map.insert(make_pair("height", Value(make_tuple(get<1>(wh_size), "px"))));
     }
 }
 
@@ -67,9 +101,17 @@ void StyleDomNode::print_property_map(int32_t depth, bool is_last_child, vector<
 string StyleDomNode::display() const {
     const Value* value = find_in_map(property_map, string("display"));
     if (value) {
-        if (value->Keyword.keyword == "block" || value->Keyword.keyword == "none") {
+        if (value->Keyword.keyword == "block" || value->Keyword.keyword == "none" ||
+            value->Keyword.keyword == "inline") {
             return value->Keyword.keyword;
         }
+        assert(false); // wrong display property
+    }
+    if (in_vector(block_elements, tag_name, string_equal)) {
+        return string("block");
+    }
+    if (in_vector(inline_elements, tag_name, string_equal)) {
+        return string("inline");
     }
     return "inline";
 }
