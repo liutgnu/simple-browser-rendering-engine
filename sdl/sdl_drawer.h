@@ -61,7 +61,7 @@ public:
             message = "render";
             goto out;
         }
-        if (!(res.white_surface = IMG_Load("/home/liut/my/browser/sdl/white.bmp"))) {
+        if (!(res.white_surface = IMG_Load("./white.bmp"))) {
             message = "white surface";
             goto out;
         }
