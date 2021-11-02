@@ -6,28 +6,35 @@
 #include <cstdarg>
 
 using namespace std;
+
+__attribute__ ((weak))
 auto is_char = [](char c) -> bool {
     return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z'));
 };
 
+__attribute__ ((weak))
 auto is_num = [](char c) -> bool {
     return (c >= '0') && (c <= '9');
 };
 
+__attribute__ ((weak))
 auto is_blank = [](char c) -> bool {
     return (c == ' ') || (c == '\t') || (c == '\n');
 };
 
+__attribute__ ((weak))
 auto is_identifier = [](char c) -> bool {
     return (is_char(c) || is_num(c) || c == '_' || c == '-');
 };
 
+__attribute__ ((weak))
 auto is_hex = [](char c) -> bool {
     return (is_num(c) || 
                 ((c >= 'A') && (c <= 'F')) ||
                 ((c >= 'a') && (c <= 'f')));
 };
 
+__attribute__ ((weak))
 auto string_equal = [](const string& a, const string& b) -> bool {
     return a == b;
 };
@@ -42,6 +49,7 @@ bool in_vector (const vector<T>& list, const T& elem, const F& f) {
     return false;
 }
 
+__attribute__ ((weak))
 auto split_string = [](const string& source, const vector<char>& delimits) -> vector<string> {
     vector<int> positions;
     vector<string> ret;

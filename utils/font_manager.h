@@ -3,6 +3,7 @@
 #include <freetype/ftimage.h>
 #include <tuple>
 #include <vector>
+#include <string>
 #include <SDL2/SDL.h>
 #define DEFAULT_FONT_SIZE 16
 
