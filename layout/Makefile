@@ -3,7 +3,7 @@ SOURCES = layout_node.cc
 MAIN_SOURCE = main.cc
 UTILS_SOURCE = ../utils/font_manager.cc
 LIBRARY_OUT = layout.o
-INTERGRATE_TEST_OUT = layoutprog.out
+INTEGRATE_TEST_OUT = layoutprog.out
 
 EXTRA_CFLAGS = -I/usr/include/SDL2 \
 				-I/usr/include/freetype2 \

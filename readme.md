@@ -19,7 +19,7 @@ I mainly take [mbrubeck/robinson](https://github.com/mbrubeck/robinson) as refer
 Each part can be both compiled to a runnable program, or a library linked by others. To compile a runnable program, goto that part and run command:
 
 ```
-$ make intergrate # compile the runnable program
+$ make integrate # compile the runnable program
 $ make clean # clean this directory and other dependencies
 ```
 The dependencies are as follows, once again, each part can be run and tested independently.

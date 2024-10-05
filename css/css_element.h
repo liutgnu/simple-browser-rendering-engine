@@ -4,6 +4,7 @@
 #include <string>
 #include <tuple>
 #include <iostream>
+#include <cstdint>
 
 using namespace std;
 

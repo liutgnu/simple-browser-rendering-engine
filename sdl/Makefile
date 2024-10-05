@@ -4,7 +4,7 @@ SOURCES = sdl_drawer.cc \
 MAIN_SOURCE = main.cc
 UTILS_SOURCE = ../utils/font_manager.cc
 LIBRARY_OUT = drawer.o
-INTERGRATE_TEST_OUT = drawerprog.out
+INTEGRATE_TEST_OUT = drawerprog.out
 
 EXTRA_CFLAGS = -I/usr/include/SDL2 \
 				-I/usr/include/freetype2 \
